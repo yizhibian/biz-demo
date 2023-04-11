@@ -2,19 +2,21 @@ version: "3.7"
 services:
   # MySQL
   mysql:
+    container_name: mysql-biz
     image: mysql:latest
     volumes:
       - ./pkg/configs/sql:/docker-entrypoint-initdb.d
     ports:
-      - "3306:3306"
+      - "7712:3306"
     environment:
       - MYSQL_DATABASE=gorm
       - MYSQL_USER=gorm
-      - MYSQL_PASSWORD=gorm
+      - MYSQL_PASSWORD=1119
       - MYSQL_RANDOM_ROOT_PASSWORD="yes"
 
   # ETCD
   Etcd:
+    container_name: etcd-biz
     image: 'bitnami/etcd:latest'
     environment:
       - ALLOW_NONE_AUTHENTICATION=yes
@@ -25,6 +27,7 @@ services:
 
   # Collector
   otel-collector:
+    container_name: otel-biz
     image: otel/opentelemetry-collector-contrib-dev:latest
     command: [ "--config=/etc/otel-collector-config.yaml", "${OTELCOL_ARGS}" ]
     volumes:
@@ -41,6 +44,7 @@ services:
 
   # Jaeger
   jaeger-all-in-one:
+    container_name: jaeger-biz
     image: jaegertracing/all-in-one:latest
     environment:
       - COLLECTOR_OTLP_ENABLED=true
@@ -52,7 +56,7 @@ services:
 
   # Victoriametrics
   victoriametrics:
-    container_name: victoriametrics
+    container_name: victoriametrics-biz
     image: victoriametrics/victoria-metrics
     ports:
       - "8428:8428"
@@ -71,6 +75,7 @@ services:
 
   # Grafana
   grafana:
+    container_name: grafana-biz
     image: grafana/grafana:latest
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true

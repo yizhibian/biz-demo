@@ -24,6 +24,8 @@ import (
 	"gorm.io/gorm/logger"
 	"gorm.io/plugin/opentelemetry/logging/logrus"
 	"gorm.io/plugin/opentelemetry/tracing"
+
+	sql2 "github.com/seata/seata-go/pkg/datasource/sql"
 )
 
 var DB *gorm.DB
@@ -39,7 +41,10 @@ func Init() {
 			LogLevel:      logger.Info,
 		},
 	)
-	DB, err = gorm.Open(mysql.Open(consts.MySQLDefaultDSN),
+	DB, err = gorm.Open(mysql.New(mysql.Config{
+		DriverName: sql2.SeataATMySQLDriver,
+		DSN:        consts.MySQLDefaultDSN,
+	}),
 		&gorm.Config{
 			PrepareStmt: true,
 			Logger:      gormlogrus,

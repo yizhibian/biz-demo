@@ -100,3 +100,11 @@ func _createuserMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _createnote_nduserMw() []app.HandlerFunc {
+	// your code...
+	//return []app.HandlerFunc{
+	//	mw.SeataTransactionMiddleware(),
+	//}
+	return nil
+}

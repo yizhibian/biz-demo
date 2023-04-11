@@ -34,6 +34,7 @@ import (
 )
 
 func Init() {
+	mw.RMInitSeataClient()
 	dal.Init()
 	// klog init
 	klog.SetLogger(kitexlogrus.NewLogger())
@@ -65,6 +66,7 @@ func main() {
 		server.WithMuxTransport(),
 		server.WithMiddleware(mw.CommonMiddleware),
 		server.WithMiddleware(mw.ServerMiddleware),
+		server.WithMiddleware(mw.RMSeataTransactionMiddleware),
 		server.WithSuite(tracing.NewServerSuite()),
 		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: consts.UserServiceName}),
 	)

@@ -19,16 +19,19 @@ package demoapi
 
 import (
 	"context"
-
 	"github.com/cloudwego/biz-demo/easy_note/cmd/api/mw"
 	"github.com/cloudwego/biz-demo/easy_note/cmd/api/rpc"
-	demoapi "github.com/cloudwego/biz-demo/easy_note/hertz_gen/demoapi"
+	"github.com/cloudwego/biz-demo/easy_note/hertz_gen/demoapi"
 	"github.com/cloudwego/biz-demo/easy_note/kitex_gen/demonote"
 	"github.com/cloudwego/biz-demo/easy_note/kitex_gen/demouser"
 	"github.com/cloudwego/biz-demo/easy_note/pkg/consts"
 	"github.com/cloudwego/biz-demo/easy_note/pkg/errno"
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/cloudwego/hertz/pkg/common/utils"
+	"github.com/seata/seata-go/pkg/constant"
+	"github.com/seata/seata-go/pkg/tm"
+	"time"
 )
 
 // CreateUser .
@@ -152,4 +155,96 @@ func DeleteNote(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 	SendResponse(c, errno.Success, nil)
+}
+
+// CreateNoteAndUser .
+// @router /v1/test [POST]
+func CreateNoteAndUser(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req demoapi.CreateNoteAndUserRequest
+	err = c.BindAndValidate(&req)
+
+	//如果绑定错误
+	if err != nil {
+		SendResponse(c, errno.ConvertErr(err), nil)
+		return
+	}
+
+	newctx := context.WithValue(ctx, "data", req)
+
+	if err = tm.WithGlobalTx(newctx, &tm.GtxConfig{
+		Name:    "ATSampleLocalGlobalTx_Update",
+		Timeout: time.Second * 60,
+	}, BeginTransaction); err != nil {
+		//panic(fmt.Sprintf("tm update data err, %v", err))
+		hlog.Info("tm failed ", err)
+	}
+
+	SendResponse(c, errno.ConvertErr(err), nil)
+
+	//hlog.Info("here we start to rpc createUser")
+	//
+	////rpc 调用创建用户 这里成功
+	//err = rpc.CreateUser(context.Background(), &demouser.CreateUserRequest{
+	//	Username: req.Username,
+	//	Password: req.Password,
+	//})
+	////如果创建用户失败
+	//if err != nil {
+	//	SendResponse(c, errno.ConvertErr(err), nil)
+	//	return
+	//}
+	//
+	//hlog.Info("here we start to rpc createNote and make a rollback")
+	//
+	////rpc 调用创建笔记 在这里制造rollback
+	//err = rpc.CreateNote(context.Background(), &demonote.CreateNoteRequest{
+	//	Title:   req.Title,
+	//	Content: req.Content,
+	//	UserId:  1,
+	//})
+	////如果创建笔记失败
+	//if err != nil {
+	//	hlog.Info("u better show the err message to me ---->" + err.Error())
+	//	SendResponse(c, errno.ConvertErr(err), nil)
+	//	return
+	//}
+	//SendResponse(c, errno.Success, nil)
+
+}
+
+func BeginTransaction(c context.Context) error {
+
+	hlog.Info("here we start to rpc createUser")
+
+	req := c.Value("data").(demoapi.CreateNoteAndUserRequest)
+
+	xid := tm.GetXID(c)
+	ctx := context.WithValue(c, constant.XidKey, xid)
+	hlog.Info("the xid in here ?    ======>", xid)
+	//rpc 调用创建用户 这里成功
+	err := rpc.CreateUser(ctx, &demouser.CreateUserRequest{
+		Username: req.Username,
+		Password: req.Password,
+	})
+	//如果创建用户失败
+	if err != nil {
+		return err
+	}
+
+	hlog.Info("here we start to rpc createNote and make a rollback")
+
+	//rpc 调用创建笔记 在这里制造rollback
+	err = rpc.CreateNote(c, &demonote.CreateNoteRequest{
+		Title:   req.Title,
+		Content: req.Content,
+		UserId:  1,
+	})
+	//如果创建笔记失败
+	if err != nil {
+		hlog.Info("u better show the err message to me ---->" + err.Error())
+		return err
+	}
+
+	return nil
 }

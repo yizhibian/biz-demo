@@ -83,6 +83,18 @@ struct DeleteNoteResponse {
     1: BaseResp base_resp
 }
 
+struct CreateNoteAndUserRequest {
+    1: string title (api.vd="len($) > 0")
+    2: string content (api.vd="len($) > 0")
+    3: string username (api.form="username", api.vd="len($) > 0")
+    4: string password (api.form="password", api.vd="len($) > 0")
+}
+
+struct CreateNoteAndUserResponse {
+    1: BaseResp base_resp
+}
+
+
 service ApiService {
     CreateUserResponse CreateUser(1: CreateUserRequest req) (api.post="/v1/user/register")
     CheckUserResponse CheckUser(1: CheckUserRequest req) (api.post="/v1/user/login")
@@ -90,4 +102,7 @@ service ApiService {
     QueryNoteResponse QueryNote(1: QueryNoteRequest req) (api.get="/v1/note/query")
     UpdateNoteResponse UpdateNote(1: UpdateNoteRequest req) (api.put="/v1/note/:note_id")
     DeleteNoteResponse DeleteNote(1: DeleteNoteRequest req) (api.delete="/v1/note/:note_id")
+
+    CreateNoteAndUserResponse CreateNoteAndUser(1: CreateNoteAndUserRequest req) (api.post="/v1/test")
+
 }

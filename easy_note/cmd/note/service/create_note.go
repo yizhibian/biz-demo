@@ -17,6 +17,8 @@ package service
 
 import (
 	"context"
+	"github.com/cloudwego/kitex/pkg/klog"
+	"gorm.io/gorm"
 
 	"github.com/cloudwego/biz-demo/easy_note/cmd/note/dal/db"
 	"github.com/cloudwego/biz-demo/easy_note/kitex_gen/demonote"
@@ -33,7 +35,13 @@ func NewCreateNoteService(ctx context.Context) *CreateNoteService {
 
 // CreateNote create note info
 func (s *CreateNoteService) CreateNote(req *demonote.CreateNoteRequest) error {
+
+	klog.Info("here we gone make the wrong")
 	noteModel := &db.Note{
+		//插入重复数据以制造回滚
+		Model: gorm.Model{
+			ID: 1,
+		},
 		UserID:  req.UserId,
 		Title:   req.Title,
 		Content: req.Content,

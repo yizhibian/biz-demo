@@ -30,6 +30,7 @@ import (
 func Init() {
 	rpc.Init()
 	mw.InitJWT()
+	mw.InitSeataClient()
 	// hlog init
 	hlog.SetLogger(hertzlogrus.NewLogger())
 	hlog.SetLevel(hlog.LevelInfo)

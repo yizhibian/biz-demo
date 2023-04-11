@@ -35,6 +35,7 @@ import (
 )
 
 func Init() {
+	mw.RMInitSeataClient()
 	rpc.Init()
 	dal.Init()
 	// klog init
@@ -67,6 +68,7 @@ func main() {
 		server.WithMuxTransport(),
 		server.WithMiddleware(mw.CommonMiddleware),
 		server.WithMiddleware(mw.ServerMiddleware),
+		server.WithMiddleware(mw.RMSeataTransactionMiddleware),
 		server.WithSuite(tracing.NewServerSuite()),
 		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: consts.NoteServiceName}),
 	)

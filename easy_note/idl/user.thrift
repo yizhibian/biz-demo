@@ -23,6 +23,7 @@ struct User {
 struct CreateUserRequest {
     1: string username (vt.min_size = "1")
     2: string password (vt.min_size = "1")
+    3: string xid
 }
 
 struct CreateUserResponse {
